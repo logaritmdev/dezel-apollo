@@ -4,14 +4,24 @@
   "description": "",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
+  "scripts": {
+    "link": "npm link dezel"
+  },
   "license": "MIT",
   "keywords": [],
   "author": "Jean-Philippe Dery <jean-philippe.dery@logaritm.ca>",
   "dependencies": {
-    "apollo-cache": "^1.1.8",
-    "apollo-client": "^2.3.1",
-    "apollo-link": "^1.2.2",
-    "graphql": "^0.13.2",
-    "graphql-tag": "^2.8.0"
+    "@types/node": "^10.12.12",
+    "apollo-cache-inmemory": "^1.4.2",
+    "apollo-cache-persist": "^0.1.1",
+    "apollo-client": "^2.4.12",
+    "apollo-link": "^1.2.6",
+    "apollo-link-error": "^1.1.5",
+    "apollo-link-http": "^1.5.9",
+    "graphql": "^14.0.2",
+    "graphql-tag": "^2.10.0"
+  },
+  "devDependencies": {
+    "@types/graphql": "^14.0.3"
   }
 }

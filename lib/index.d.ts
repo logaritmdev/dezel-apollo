@@ -1,2 +1,10 @@
+import gql from 'graphql-tag';
+export { Application } from './Application';
+export { ApplicationRequestEvent } from './Application';
+export { ApplicationRequestErrorEvent } from './Application';
+export { ApplicationNetworkErrorEvent } from './Application';
+export { DataSource } from './DataSource';
 export { Query } from './Query';
 export { Mutation } from './Mutation';
+export { Fragment } from './Fragment';
+export { gql };

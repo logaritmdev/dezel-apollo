@@ -1,11 +1,12 @@
 import ApolloClient from 'apollo-client';
+import { FetchResult } from 'apollo-link';
 import { MutationBaseOptions, FetchPolicy, ErrorPolicy } from 'apollo-client/core/watchQueryOptions';
-import { DocumentNode, ExecutionResult } from 'graphql';
+import { DocumentNode } from 'graphql';
 /**
  * Symbols
  */
-export declare const kClient: unique symbol;
-export declare const kMutation: unique symbol;
+export declare const CLIENT: unique symbol;
+export declare const MUTATION: unique symbol;
 /**
  * @interface MutationOptions
  */
@@ -22,7 +23,7 @@ export declare class Mutation<T> {
      * @property client
      * @since 1.0.0
      */
-    readonly client: ApolloClient<Object>;
+    readonly client: ApolloClient<any>;
     /**
      *
      * @property mutation
@@ -45,35 +46,23 @@ export declare class Mutation<T> {
      * @constructor
      * @since 1.0.0
      */
-    constructor(client: ApolloClient<Object>, query: DocumentNode);
-    /**
-     * Alias for mutate method.
-     * @method exec
-     * @since 1.0.0
-     */
-    exec(options: MutationOptions): Promise<ExecutionResult & {
-        extensions?: Record<string, any> | undefined;
-        context?: {} | undefined;
-    }>;
+    constructor(query: DocumentNode);
     /**
      * Performs the mutation.
      * @method mutate
      * @since 1.0.0
      */
-    mutate(options: MutationOptions): Promise<ExecutionResult & {
-        extensions?: Record<string, any> | undefined;
-        context?: {} | undefined;
-    }>;
+    mutate(options: MutationOptions): Promise<FetchResult<T>>;
     /**
      * @property Symbol(client)
      * @since 1.0.0
      * @hidden
      */
-    private [kClient];
+    private [CLIENT];
     /**
      * @property Symbol(mutation)
      * @since 1.0.0
      * @hidden
      */
-    private [kMutation];
+    private [MUTATION];
 }

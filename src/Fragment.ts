@@ -1,7 +1,4 @@
-
 import ApolloClient from 'apollo-client'
-import { FetchResult } from 'apollo-link'
-import { MutationBaseOptions, FetchPolicy, ErrorPolicy } from 'apollo-client/core/watchQueryOptions'
 import { DocumentNode } from 'graphql'
 import { Application } from './Application'
 
@@ -9,20 +6,14 @@ import { Application } from './Application'
  * Symbols
  */
 export const CLIENT = Symbol('client')
-export const MUTATION = Symbol('mutation')
+export const FRAGMENT = Symbol('fragment')
+export const TYPENAME = Symbol('typename')
 
 /**
- * @interface MutationOptions
+ * @class Fragment
+ * @since 0.1.0
  */
-export interface MutationOptions extends MutationBaseOptions {
-	metadata?: any;
-	context?: any;
-}
-
-/**
- * @class Mutation
- */
-export class Mutation<T> {
+export class Fragment<T> {
 
 	//--------------------------------------------------------------------------
 	// Property
@@ -44,26 +35,21 @@ export class Mutation<T> {
 
 	/**
 	 *
-	 * @property mutation
+	 * @property fragment
 	 * @since 1.0.0
 	 */
-	public get mutation(): DocumentNode {
-		return this[MUTATION]
+	public get fragment(): DocumentNode {
+		return this[FRAGMENT]
 	}
 
 	/**
-	 * The default fetch policy.
-	 * @property fetchPolicy
+	 *
+	 * @property typename
 	 * @since 1.0.0
 	 */
-	public fetchPolicy?: FetchPolicy
-
-	/**
-	 * The default error policy.
-	 * @property errorPolicy
-	 * @since 1.0.0
-	 */
-	public errorPolicy?: ErrorPolicy = 'all'
+	public get typename(): string {
+		return this[TYPENAME]
+	}
 
 	//--------------------------------------------------------------------------
 	// Methods
@@ -73,21 +59,27 @@ export class Mutation<T> {
 	 * @constructor
 	 * @since 1.0.0
 	 */
-	constructor(query: DocumentNode) {
-		this[MUTATION] = query
+	constructor(typename: string, fragment: DocumentNode) {
+		this[TYPENAME] = typename
+		this[FRAGMENT] = fragment
 	}
 
 	/**
-	 * Performs the mutation.
-	 * @method mutate
+	 * Reads the query from the cache.
+	 * @method read
 	 * @since 1.0.0
 	 */
-	public mutate(options: MutationOptions): Promise<FetchResult<T>> {
-		let params = options as any
-		params.mutation = this.mutation
-		params.fetchPolicy = params.fetchPolicy || this.fetchPolicy
-		params.errorPolicy = params.errorPolicy || this.errorPolicy
-		return this.client.mutate<T>(params)
+	public read(id: string) {
+		return this.client.readFragment<T>({ id: this.typename + ':' + id, fragment: this.fragment })
+	}
+
+	/**
+	 * Writes the query to the cache.
+	 * @method write
+	 * @since 1.0.0
+	 */
+	public write(id: string, data: any) {
+		return this.client.writeFragment({ id: this.typename + ':' + id, fragment: this.fragment, data })
 	}
 
 	//--------------------------------------------------------------------------
@@ -102,10 +94,17 @@ export class Mutation<T> {
 	private [CLIENT]: ApolloClient<Object>
 
 	/**
-	 * @property Symbol(mutation)
+	 * @property Symbol(fragment)
 	 * @since 1.0.0
 	 * @hidden
 	 */
-	private [MUTATION]: DocumentNode
+	private [FRAGMENT]: DocumentNode
+
+	/**
+	 * @property Symbol(typename)
+	 * @since 1.0.0
+	 * @hidden
+	 */
+	private [TYPENAME]: string
 
 }

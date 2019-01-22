@@ -1,15 +1,16 @@
 import ApolloClient from 'apollo-client';
-import { ModifiableWatchQueryOptions, FetchPolicy, ErrorPolicy } from 'apollo-client/core/watchQueryOptions';
-import { ApolloQueryResult } from 'apollo-client/core/types';
-import { ObservableQuery } from 'apollo-client/core/ObservableQuery';
+import { ModifiableWatchQueryOptions } from 'apollo-client/core/watchQueryOptions';
+import { FetchPolicy } from 'apollo-client/core/watchQueryOptions';
+import { ErrorPolicy } from 'apollo-client/core/watchQueryOptions';
 import { DocumentNode } from 'graphql';
 /**
  * Symbols
  */
-export declare const kClient: unique symbol;
-export declare const kQuery: unique symbol;
+export declare const CLIENT: unique symbol;
+export declare const QUERY: unique symbol;
 /**
  * @interface QueryOptions
+ * @since 0.1.0
  */
 export interface QueryOptions extends ModifiableWatchQueryOptions {
     metadata?: any;
@@ -18,30 +19,41 @@ export interface QueryOptions extends ModifiableWatchQueryOptions {
 }
 /**
  * @interface ReadQueryOptions
+ * @since 0.1.0
  */
 export interface ReadQueryOptions {
     variables?: any;
 }
 /**
  * @interface WriteQueryOptions
+ * @since 0.1.0
  */
 export interface WriteQueryOptions {
     data: any;
 }
 /**
- * @type Callback
+ * @type ObserverFunction
+ * @since 0.1.0
  */
-export declare type Callback<T> = (loading: boolean, data?: T) => void;
+export declare type ObserverFunction<T> = (loading: boolean, data: T) => void;
+/**
+ * @type ObserverObject
+ * @since 0.1.0
+ */
+export declare type ObserverObject<T> = {
+    onQuery(loading: boolean, data: T, query: Query<T>): void;
+};
 /**
  * @class Query
+ * @since 0.1.0
  */
-export declare class Query<T> {
+export declare class Query<T, V = any> {
     /**
      *
      * @property client
      * @since 1.0.0
      */
-    readonly client: ApolloClient<Object>;
+    readonly client: ApolloClient<any>;
     /**
      *
      * @property query
@@ -64,13 +76,7 @@ export declare class Query<T> {
      * @constructor
      * @since 1.0.0
      */
-    constructor(client: ApolloClient<Object>, query: DocumentNode);
-    /**
-     * Alias for fetch method.
-     * @method exec
-     * @since 1.0.0
-     */
-    exec(options: QueryOptions): Promise<ApolloQueryResult<T>>;
+    constructor(query: DocumentNode);
     /**
      * Reads the query from the cache.
      * @method read
@@ -88,43 +94,43 @@ export declare class Query<T> {
      * @method fetch
      * @since 1.0.0
      */
-    fetch(options?: QueryOptions): Promise<ApolloQueryResult<T>>;
+    fetch(options?: QueryOptions): Promise<import("apollo-client/core/types").ApolloQueryResult<T>>;
     /**
      * Refetches data from this query from the network.
      * @method refetch
      * @since 1.0.0
      */
-    refetch(options?: QueryOptions): Promise<ApolloQueryResult<T>>;
+    refetch(options?: QueryOptions): Promise<import("apollo-client/core/types").ApolloQueryResult<T>>;
     /**
      * Watches changes to this query.
      * @method watch
      * @since 1.0.0
      */
-    watch(options?: QueryOptions): ObservableQuery<T>;
+    watch(options?: QueryOptions): import("apollo-client/core/ObservableQuery").ObservableQuery<T, import("apollo-client/core/types").OperationVariables>;
     /**
      * Observes a query for changes.
      * @method observe
      * @since 1.0.0
      */
-    observe(options: QueryOptions, observer: Callback<T>): this;
+    observe(options: QueryOptions, observer: ObserverFunction<T> | ObserverObject<T>): this;
     /**
      * Stop observing a query.
      * @method unobserve
      * @since 1.0.0
      */
-    unobserve(observer: Callback<T>): this;
+    unobserve(observer: ObserverFunction<T> | ObserverObject<T>): this;
     /**
      * @property Symbol(client)
      * @since 1.0.0
      * @hidden
      */
-    private [kClient];
+    private [CLIENT];
     /**
      * @property Symbol(query)
      * @since 1.0.0
      * @hidden
      */
-    private [kQuery];
+    private [QUERY];
     /**
      * @property observers
      * @since 1.0.0

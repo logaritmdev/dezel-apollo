@@ -1,19 +1,20 @@
-import gql from 'graphql-tag'
 import ApolloClient from 'apollo-client'
-import { WatchQueryOptions, SubscriptionOptions, MutationOptions, ModifiableWatchQueryOptions, MutationBaseOptions, FetchPolicy, ErrorPolicy } from 'apollo-client/core/watchQueryOptions'
-import { ApolloQueryResult } from 'apollo-client/core/types'
-import { ObservableQuery } from 'apollo-client/core/ObservableQuery'
-import { DataProxy } from 'apollo-cache'
-import { DocumentNode, ExecutionResult } from 'graphql'
+import { WatchQueryOptions } from 'apollo-client/core/watchQueryOptions'
+import { ModifiableWatchQueryOptions } from 'apollo-client/core/watchQueryOptions'
+import { FetchPolicy } from 'apollo-client/core/watchQueryOptions'
+import { ErrorPolicy } from 'apollo-client/core/watchQueryOptions'
+import { DocumentNode } from 'graphql'
+import { Application } from './Application'
 
 /**
  * Symbols
  */
-export const kClient = Symbol('client')
-export const kQuery = Symbol('query')
+export const CLIENT = Symbol('client')
+export const QUERY = Symbol('query')
 
 /**
  * @interface QueryOptions
+ * @since 0.1.0
  */
 export interface QueryOptions extends ModifiableWatchQueryOptions {
 	metadata?: any
@@ -23,6 +24,7 @@ export interface QueryOptions extends ModifiableWatchQueryOptions {
 
 /**
  * @interface ReadQueryOptions
+ * @since 0.1.0
  */
 export interface ReadQueryOptions {
 	variables?: any
@@ -30,20 +32,31 @@ export interface ReadQueryOptions {
 
 /**
  * @interface WriteQueryOptions
+ * @since 0.1.0
  */
 export interface WriteQueryOptions {
 	data: any
 }
 
 /**
- * @type Callback
+ * @type ObserverFunction
+ * @since 0.1.0
  */
-export type Callback<T> = (loading: boolean, data?: T) => void
+export type ObserverFunction<T> = (loading: boolean, data: T) => void
+
+/**
+ * @type ObserverObject
+ * @since 0.1.0
+ */
+export type ObserverObject<T> = {
+	onQuery(loading: boolean, data: T, query: Query<T>): void
+}
 
 /**
  * @class Query
+ * @since 0.1.0
  */
-export class Query<T> {
+export class Query<T, V = any> {
 
 	//--------------------------------------------------------------------------
 	// Property
@@ -54,8 +67,13 @@ export class Query<T> {
 	 * @property client
 	 * @since 1.0.0
 	 */
-	public get client(): ApolloClient<Object> {
-		return this[kClient]
+	public get client(): ApolloClient<any> {
+
+		if (this[CLIENT] == null) {
+			this[CLIENT] = Application.apollo
+		}
+
+		return this[CLIENT]
 	}
 
 	/**
@@ -64,7 +82,7 @@ export class Query<T> {
 	 * @since 1.0.0
 	 */
 	public get query(): DocumentNode {
-		return this[kQuery]
+		return this[QUERY]
 	}
 
 	/**
@@ -89,18 +107,8 @@ export class Query<T> {
 	 * @constructor
 	 * @since 1.0.0
 	 */
-	constructor(client: ApolloClient<Object>, query: DocumentNode) {
-		this[kClient] = client
-		this[kQuery] = query
-	}
-
-	/**
-	 * Alias for fetch method.
-	 * @method exec
-	 * @since 1.0.0
-	 */
-	public exec(options: QueryOptions) {
-		return this.fetch(options)
+	constructor(query: DocumentNode) {
+		this[QUERY] = query
 	}
 
 	/**
@@ -112,7 +120,7 @@ export class Query<T> {
 
 		try {
 
-			let params = options as DataProxy.Query
+			let params = options as any // TODO type
 			params.query = this.query
 			return this.client.readQuery<T>(params)
 
@@ -127,7 +135,7 @@ export class Query<T> {
 	 * @since 1.0.0
 	 */
 	public write(options: WriteQueryOptions) {
-		let params = options as DataProxy.WriteQueryOptions
+		let params = options as any // TODO Type
 		params.query = this.query
 		return this.client.writeQuery(params)
 	}
@@ -178,7 +186,7 @@ export class Query<T> {
 	 * @method observe
 	 * @since 1.0.0
 	 */
-	public observe(options: QueryOptions, observer: Callback<T>) {
+	public observe(options: QueryOptions, observer: ObserverFunction<T> | ObserverObject<T>) {
 
 		let subscription = this.observers.get(observer)
 		if (subscription) {
@@ -195,7 +203,16 @@ export class Query<T> {
 		params.errorPolicy = options.errorPolicy || this.errorPolicy
 
 		subscription = this.client.watchQuery<T>(params).subscribe({
-			next: (res) => observer(res.loading, res.data as T)
+
+			next: (res: any) => {
+
+				if (typeof observer == 'function') {
+					observer(res.loading, res.data || {})
+					return
+				}
+
+				observer.onQuery(res.loading, res.data || {}, this)
+			}
 		})
 
 		this.observers.set(observer, subscription)
@@ -208,7 +225,7 @@ export class Query<T> {
 	 * @method unobserve
 	 * @since 1.0.0
 	 */
-	public unobserve(observer: Callback<T>) {
+	public unobserve(observer: ObserverFunction<T> | ObserverObject<T>) {
 
 		let subscription = this.observers.get(observer)
 		if (subscription == null) {
@@ -231,14 +248,14 @@ export class Query<T> {
 	 * @since 1.0.0
 	 * @hidden
 	 */
-	private [kClient]: ApolloClient<Object>
+	private [CLIENT]: ApolloClient<Object>
 
 	/**
 	 * @property Symbol(query)
 	 * @since 1.0.0
 	 * @hidden
 	 */
-	private [kQuery]: DocumentNode
+	private [QUERY]: DocumentNode
 
 	/**
 	 * @property observers
