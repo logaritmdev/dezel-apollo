@@ -1,19 +1,30 @@
+import ApolloLinkTimeout from 'apollo-link-timeout'
+import 'whatwg-fetch'
+import { InMemoryCache } from 'apollo-cache-inmemory'
 import { ApolloClient } from 'apollo-client'
 import { ApolloLink } from 'apollo-link'
 import { Observable } from 'apollo-link'
 import { Operation } from 'apollo-link'
-import { HttpLink } from 'apollo-link-http'
-import { InMemoryCache } from 'apollo-cache-inmemory'
 import { onError } from 'apollo-link-error'
-import { persistCache } from 'apollo-cache-persist'
-import { Event } from 'dezel'
+import { HttpLink } from 'apollo-link-http'
+import { ServerError } from 'apollo-link-http-common'
+import { ServerParseError } from 'apollo-link-http-common'
 import { Application as BaseApplication } from 'dezel'
+import { Event } from 'dezel'
+import { GraphQLError } from 'graphql'
+import { NetworkError } from './NetworkError'
 
 /**
  * @symbol READY
  * @since 0.4.0
  */
 export const APOLLO = Symbol('apollo')
+
+/**
+ * @symbol READY
+ * @since 0.4.0
+ */
+export const QUERIES = Symbol('queries')
 
 /**
  * @class Application
@@ -32,7 +43,7 @@ export class Application extends BaseApplication {
 	 */
 	public static get apollo(): ApolloClient<any> {
 
-		let application = Application.instance
+		let application = Application.main
 		if (application == null) {
 			throw new Error(
 				'Apollo Application Error: ' +
@@ -86,24 +97,15 @@ export class Application extends BaseApplication {
 
 		let configs = this.configure()
 
-		/*
-		 * Apollo cache
-		 */
-
-		let cache = new InMemoryCache()
-
-		/*
-		 * Manages apollo request
-		 */
-
 		const request = async (operation: Operation) => {
-			console.log('request')
 			this.emit<ApplicationRequestEvent>('apollorequest', {
 				data: {
 					operation
 				}
 			})
-		};
+		}
+
+		const timeoutLink = new ApolloLinkTimeout(30000)
 
 		const requestLink = new ApolloLink((operation, forward) => new Observable(observer => {
 
@@ -124,10 +126,6 @@ export class Application extends BaseApplication {
 
 		}))
 
-		/*
-		 * Apollo link
-		 */
-
 		let link = ApolloLink.from([
 
 			onError((error) => {
@@ -138,23 +136,24 @@ export class Application extends BaseApplication {
 				} = error
 
 				if (networkError) {
-					this.emit('apollonetworkerror', { data: { error: networkError } })
+					this.dispatchNetworkError(networkError)
 				}
 
 				if (graphQLErrors) {
-					for (let error of graphQLErrors) {
-						this.emit('apollorequesterror', { data: { error } })
+					for (let requestError of graphQLErrors) {
+						this.dispatchRequestError(requestError)
 					}
 				}
 			}),
 
 			requestLink,
-
-			new HttpLink({ uri: configs.uri, credentials: 'include' })
+			timeoutLink.concat(
+				new HttpLink({ uri: configs.uri, credentials: 'include' })
+			)
 
 		])
 
-		this[APOLLO] = new ApolloClient({ link, cache })
+		this[APOLLO] = new ApolloClient({ link, cache: new InMemoryCache() })
 	}
 
 	/**
@@ -235,6 +234,41 @@ export class Application extends BaseApplication {
 	 */
 	private [APOLLO]: ApolloClient<any> | null
 
+	/**
+	 * @method dispatchNetworkError
+	 * @since 0.1.0
+	 * @hidden
+	 */
+	private dispatchNetworkError(error: Error | ServerError | ServerParseError) {
+
+		let event = error as any
+
+		if (event instanceof Error == false) {
+
+			/*
+			 * I believe the error event from Dezel XMLHttpRequest might not
+			 * be doing the right thing becasue I'm receiving an event where
+			 * instead of a error.
+			 */
+
+			if (event.description) {
+				error = new TypeError(event.description)
+			}
+		}
+
+		error = new NetworkError(error)
+
+		this.emit('apollonetworkerror', { data: { error } })
+	}
+
+	/**
+	 * @method dispatchRequestError
+	 * @since 0.1.0
+	 * @hidden
+	 */
+	private dispatchRequestError(error: GraphQLError) {
+		this.emit('apollorequesterror', { data: { error } })
+	}
 }
 
 /**

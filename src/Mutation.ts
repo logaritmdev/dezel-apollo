@@ -1,8 +1,9 @@
-
 import ApolloClient from 'apollo-client'
 import { FetchResult } from 'apollo-link'
-import { MutationBaseOptions, FetchPolicy, ErrorPolicy } from 'apollo-client/core/watchQueryOptions'
 import { DocumentNode } from 'graphql'
+import { ErrorPolicy } from 'apollo-client/core/watchQueryOptions'
+import { FetchPolicy } from 'apollo-client/core/watchQueryOptions'
+import { MutationBaseOptions } from 'apollo-client/core/watchQueryOptions'
 import { Application } from './Application'
 
 /**
@@ -29,9 +30,9 @@ export class Mutation<T> {
 	//--------------------------------------------------------------------------
 
 	/**
-	 *
+	 * The apollo client.
 	 * @property client
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 */
 	public get client(): ApolloClient<any> {
 
@@ -45,7 +46,7 @@ export class Mutation<T> {
 	/**
 	 *
 	 * @property mutation
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 */
 	public get mutation(): DocumentNode {
 		return this[MUTATION]
@@ -54,14 +55,14 @@ export class Mutation<T> {
 	/**
 	 * The default fetch policy.
 	 * @property fetchPolicy
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 */
-	public fetchPolicy?: FetchPolicy
+	public fetchPolicy?: FetchPolicy = 'no-cache'
 
 	/**
 	 * The default error policy.
 	 * @property errorPolicy
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 */
 	public errorPolicy?: ErrorPolicy = 'all'
 
@@ -71,7 +72,7 @@ export class Mutation<T> {
 
 	/**
 	 * @constructor
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 */
 	constructor(query: DocumentNode) {
 		this[MUTATION] = query
@@ -80,14 +81,16 @@ export class Mutation<T> {
 	/**
 	 * Performs the mutation.
 	 * @method mutate
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 */
 	public mutate(options: MutationOptions): Promise<FetchResult<T>> {
+
 		let params = options as any
 		params.mutation = this.mutation
 		params.fetchPolicy = params.fetchPolicy || this.fetchPolicy
 		params.errorPolicy = params.errorPolicy || this.errorPolicy
-		return this.client.mutate<T>(params)
+
+		return this.client.mutate<T>(options as any)
 	}
 
 	//--------------------------------------------------------------------------
@@ -96,14 +99,14 @@ export class Mutation<T> {
 
 	/**
 	 * @property Symbol(client)
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 * @hidden
 	 */
 	private [CLIENT]: ApolloClient<Object>
 
 	/**
 	 * @property Symbol(mutation)
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 * @hidden
 	 */
 	private [MUTATION]: DocumentNode

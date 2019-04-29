@@ -18,8 +18,10 @@
     "apollo-link": "^1.2.6",
     "apollo-link-error": "^1.1.5",
     "apollo-link-http": "^1.5.9",
+    "apollo-link-timeout": "^1.2.1",
     "graphql": "^14.0.2",
-    "graphql-tag": "^2.10.0"
+    "graphql-tag": "^2.10.0",
+    "whatwg-fetch": "^3.0.0"
   },
   "devDependencies": {
     "@types/graphql": "^14.0.3"

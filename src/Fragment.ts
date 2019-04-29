@@ -22,7 +22,7 @@ export class Fragment<T> {
 	/**
 	 *
 	 * @property client
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 */
 	public get client(): ApolloClient<any> {
 
@@ -36,7 +36,7 @@ export class Fragment<T> {
 	/**
 	 *
 	 * @property fragment
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 */
 	public get fragment(): DocumentNode {
 		return this[FRAGMENT]
@@ -45,7 +45,7 @@ export class Fragment<T> {
 	/**
 	 *
 	 * @property typename
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 */
 	public get typename(): string {
 		return this[TYPENAME]
@@ -57,7 +57,7 @@ export class Fragment<T> {
 
 	/**
 	 * @constructor
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 */
 	constructor(typename: string, fragment: DocumentNode) {
 		this[TYPENAME] = typename
@@ -67,7 +67,7 @@ export class Fragment<T> {
 	/**
 	 * Reads the query from the cache.
 	 * @method read
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 */
 	public read(id: string) {
 		return this.client.readFragment<T>({ id: this.typename + ':' + id, fragment: this.fragment })
@@ -76,7 +76,7 @@ export class Fragment<T> {
 	/**
 	 * Writes the query to the cache.
 	 * @method write
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 */
 	public write(id: string, data: any) {
 		return this.client.writeFragment({ id: this.typename + ':' + id, fragment: this.fragment, data })
@@ -88,21 +88,21 @@ export class Fragment<T> {
 
 	/**
 	 * @property Symbol(client)
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 * @hidden
 	 */
 	private [CLIENT]: ApolloClient<Object>
 
 	/**
 	 * @property Symbol(fragment)
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 * @hidden
 	 */
 	private [FRAGMENT]: DocumentNode
 
 	/**
 	 * @property Symbol(typename)
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 * @hidden
 	 */
 	private [TYPENAME]: string

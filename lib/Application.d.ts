@@ -1,12 +1,18 @@
+import 'whatwg-fetch';
 import { ApolloClient } from 'apollo-client';
 import { Operation } from 'apollo-link';
-import { Event } from 'dezel';
 import { Application as BaseApplication } from 'dezel';
+import { Event } from 'dezel';
 /**
  * @symbol READY
  * @since 0.4.0
  */
 export declare const APOLLO: unique symbol;
+/**
+ * @symbol READY
+ * @since 0.4.0
+ */
+export declare const QUERIES: unique symbol;
 /**
  * @class Application
  * @super Application
@@ -65,6 +71,18 @@ export declare class Application extends BaseApplication {
      * @hidden
      */
     private [APOLLO];
+    /**
+     * @method dispatchNetworkError
+     * @since 0.1.0
+     * @hidden
+     */
+    private dispatchNetworkError;
+    /**
+     * @method dispatchRequestError
+     * @since 0.1.0
+     * @hidden
+     */
+    private dispatchRequestError;
 }
 /**
  * @type ApplicationRequestEvent

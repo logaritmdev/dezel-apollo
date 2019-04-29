@@ -65,7 +65,7 @@ export declare class DataSource<T, Q> extends BaseDataSource<T> {
      * @method refetch
      * @since 0.1.0
      */
-    refetch(options?: QueryOptions): Promise<void>;
+    refetch(options?: QueryOptions): any;
     /**
      * @inherited
      * @method destroy
